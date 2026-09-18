@@ -8,7 +8,7 @@ h.wakaura@qiri.co.jp
 
 [Manuscript PDF](paper/manuscript.pdf) · [Supplement PDF](paper/supplement.pdf)
 
-Designated repository: [https://github.com/deeptell-inc/cryptochrome-neural-history](https://github.com/deeptell-inc/cryptochrome-neural-history). Public access is pending; an unauthenticated API check returned HTTP 404. The numerical Supplementary Data archive is a separate submission artifact and is not included in this repository.
+Repository: [https://github.com/deeptell-inc/cryptochrome-neural-history](https://github.com/deeptell-inc/cryptochrome-neural-history). The numerical Supplementary Data archive is a separate submission artifact and is not included in this repository.
 
 ## Scope
 
