@@ -1,0 +1,26 @@
+# Source/PDF allowlist: generated data are excluded even after running calculations.
+*
+!*/
+!/README.md
+!/requirements.txt
+!/requirements-dev.txt
+!/pytest.ini
+!/.gitignore
+!/impl/**/*.py
+!/investigations/**/*.py
+!/tests/**/*.py
+!/evidence/2026-09-17-native-noise-literature/extract_source_data.py
+!/paper/manuscript.pdf
+!/paper/supplement.pdf
+!/paper/2026-09-18/revision_analysis.py
+!/paper/physical-biology/supplementary-data/reproduce.py
+# Never admit Python caches, environments or generated output directories.
+**/__pycache__/
+**/.pytest_cache/
+**/.venv/
+**/venv/
+**/data/
+**/results/
+**/reproduced/
+**/figures/
+**/.mpl-cache/
