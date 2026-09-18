@@ -1,0 +1,35 @@
+{
+  "title": "Cryptochrome spin-state history and neural responses: computational source companion",
+  "upload_type": "software",
+  "description": "<p>Computational source companion to the manuscript <em>Conditions for transmitting cryptochrome spin-state history to neural responses</em> (Physical Biology submission draft). Contains the compiled manuscript and supplement PDFs, the calculation modules, simulation/analysis drivers and data-free numerical tests.</p><p>The five modules (spin history and population storage, chemical product routing, three-state Hk storage, conditional synaptic circuit, published current-data reanalysis) are separate conditional tests, not successive stages of a calibrated biological pathway. Precomputed results and third-party source data are not included; see README for the inputs required to reproduce each calculation.</p>",
+  "creators": [
+    {
+      "name": "Wakaura, Hikaru",
+      "affiliation": "QIRI (Quantum Integrated Research Institute Inc.)"
+    }
+  ],
+  "license": "MIT",
+  "keywords": [
+    "cryptochrome",
+    "radical pair",
+    "nuclear spin polarization",
+    "Hyperkinetic",
+    "Kv beta subunit",
+    "redox memory",
+    "stochastic synapse",
+    "stop-signal task"
+  ],
+  "related_identifiers": [
+    {
+      "identifier": "10.1038/s41586-025-08734-4",
+      "relation": "references",
+      "scheme": "doi"
+    },
+    {
+      "identifier": "10.1063/5.0038947",
+      "relation": "references",
+      "scheme": "doi"
+    }
+  ],
+  "notes": "Source code is released under the MIT License. The manuscript and supplement PDFs (paper/manuscript.pdf, paper/supplement.pdf) are licensed under CC BY 4.0. Third-party source data are not redistributed."
+}

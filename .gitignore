@@ -6,6 +6,8 @@
 !/requirements-dev.txt
 !/pytest.ini
 !/.gitignore
+!/LICENSE
+!/.zenodo.json
 !/impl/**/*.py
 !/investigations/**/*.py
 !/tests/**/*.py

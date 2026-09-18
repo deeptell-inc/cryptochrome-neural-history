@@ -8,6 +8,8 @@ h.wakaura@qiri.co.jp
 
 [Manuscript PDF](paper/manuscript.pdf) · [Supplement PDF](paper/supplement.pdf)
 
+Designated repository: [https://github.com/deeptell-inc/cryptochrome-neural-history](https://github.com/deeptell-inc/cryptochrome-neural-history). Public access is pending; an unauthenticated API check returned HTTP 404. The numerical Supplementary Data archive is a separate submission artifact and is not included in this repository.
+
 ## Scope
 
 This repository contains the compiled manuscript and supplement, the principal calculation modules and their local Python dependencies, simulation/analysis drivers, and numerical tests. It is a focused paper companion, not an archive of every earlier investigation. `impl/reservoir.py` and `impl/spin.py` retain the earlier observable-history reference calculations.
@@ -92,3 +94,7 @@ python investigations/2026-09-17-hk-redox-update/verify_and_plot.py
 Some drivers perform large scans and create results under `data/`; the figure reproduction script writes to its adjacent `reproduced/` directory. Review their parameters and input requirements before running them.
 
 Numerical sources are copied from the research workspace without changes to model equations or parameter values. The only source portability adjustment replaces the machine-specific plotting-cache directory in `verify_and_plot.py` with the operating system temporary directory.
+
+## License
+
+Source code (`impl/`, `investigations/`, `tests/`, `evidence/**/*.py`, `paper/**/*.py`) is released under the [MIT License](LICENSE). The manuscript and supplement PDFs (`paper/manuscript.pdf`, `paper/supplement.pdf`) are licensed under [Creative Commons Attribution 4.0 International (CC BY 4.0)](https://creativecommons.org/licenses/by/4.0/). Third-party source data referenced above are not redistributed and remain under their original terms.
