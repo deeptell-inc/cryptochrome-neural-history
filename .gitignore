@@ -10,6 +10,7 @@
 !/.zenodo.json
 !/impl/**/*.py
 !/investigations/**/*.py
+!/investigations/**/*.sh
 !/tests/**/*.py
 !/evidence/2026-09-17-native-noise-literature/extract_source_data.py
 !/paper/manuscript.pdf
@@ -26,3 +27,5 @@
 **/reproduced/
 **/figures/
 **/.mpl-cache/
+
+!/paper/journal-of-biological-physics/motion-revision/reproduce.py

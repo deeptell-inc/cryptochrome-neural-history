@@ -1,6 +1,6 @@
-# Cryptochrome spin-state history and neural responses
+# Rotational constraints on cryptochrome nuclear population memory
 
-Computational source companion to **Conditions for transmitting cryptochrome spin-state history to neural responses** (Physical Biology submission draft).
+Computational source companion to **Rotational constraints on nuclear population memory in a cryptochrome reaction model** (Journal of Biological Physics draft, 9 October 2026, `jbp-motion-2.0.0`).
 
 **Hikaru Wakaura**  
 QIRI (Quantum Integrated Research Institute Inc.), Tokyo 107-0061, Japan  
@@ -8,19 +8,19 @@ h.wakaura@qiri.co.jp
 
 [Manuscript PDF](paper/manuscript.pdf) · [Supplement PDF](paper/supplement.pdf)
 
-Repository: [https://github.com/deeptell-inc/cryptochrome-neural-history](https://github.com/deeptell-inc/cryptochrome-neural-history). The numerical Supplementary Data archive is a separate submission artifact and is not included in this repository.
+The current revision compares free rotation, protection of chemical waits, reversible binding, bound angular fluctuations, electric orientation, electronic EFG/hyperfine response and deformation of an assumed rotational binding well. The earlier fixed-orientation storage result is a conditional control. The neural calculation illustrates readout under prescribed gain and timing; it does not establish a native brain pathway or effect size. Electric-field-updated yields have not been propagated to new neural trials.
 
-## Scope
+Nuclear-population inheritance has prior theoretical precedents, including [Wong et al. (2021)](https://doi.org/10.1063/5.0038947). `population` retains joint diagonal probabilities and correlations at the specified HQ boundary while removing boundary coherence. Both it and `full` retain within-cycle quantum dynamics. Population is not a complex wavefunction amplitude.
 
-This repository contains the compiled manuscript and supplement, the principal calculation modules and their local Python dependencies, simulation/analysis drivers, and numerical tests. It is a focused paper companion, not an archive of every earlier investigation. `impl/reservoir.py` and `impl/spin.py` retain the earlier observable-history reference calculations.
+## Repository contents
 
-Precomputed results, trial records, frozen operators, MD trajectories, electronic-structure checkpoints, downloaded articles, workbooks, plots, LaTeX sources and submission archives are excluded. The PDFs contain the figures and results presented in the paper. `.gitignore` uses an allowlist to prevent generated results from being added accidentally.
+This repository contains calculation source, numerical tests, the two compiled paper PDFs and minimal project metadata. It deliberately excludes simulation outputs, numerical result tables, trial records, frozen operators, MD trajectories, electronic checkpoints, downloaded papers, plots, LaTeX sources and submission/data archives. The manuscript PDFs contain the figures and results reported in the article.
 
-The five modules are separate conditional tests, not successive stages of a calibrated biological pathway. The circuit module uses the spin-model yield contrast directly; it does not derive that contrast through the chemical-routing and Hk-storage modules. `population_HQ` retains density-matrix populations (squared amplitudes) at the HQ cycle boundary while removing boundary coherence; it still shares within-reaction quantum dynamics with `full`.
+**Online Resource 2 is a separate numerical supplement and is not in this repository.** There is no public data deposit or data DOI. The allowlist in `.gitignore` prevents generated data from being added by ordinary staging. Earlier source modules are retained for provenance; the two PDFs and the motion-revision reproduction script are the current article artifacts.
 
-## Setup and data-free checks
+## Setup and checks without paper data
 
-Use Python 3.11 or later. From this repository root:
+Use Python 3.11 or later. From the repository root:
 
 ```bash
 python -m venv .venv
@@ -29,72 +29,70 @@ python -m pip install -r requirements-dev.txt
 python -m pytest -q
 ```
 
-The default pytest configuration selects the chemical-routing, Hk-memory, three-state pulse and stochastic-count tests that do not read excluded data. These compare implementations with independent ODE solutions, matrix exponentials, limiting cases, finite differences and stochastic moments. They do not reproduce the entire paper. Dependency versions in `requirements.txt` describe the export-validation environment, not the original simulation environment.
+Default tests cover the earlier chemical-routing, Hk, pulse and stochastic-count routines, plus the new bound-wobble and electric-orientation generators. They check independent solutions, limiting cases, conservation, noise factors, equilibrium moments and the covariant rotational generator without reading excluded paper data.
 
-Additional data-free circuit checks:
+Three additional field-coupling checks use synthetic inputs only:
 
 ```bash
 python -m pytest -q \
-  tests/test_sparse_synaptic.py::test_allocation_equal_budget_and_selective_block \
-  tests/test_sparse_synaptic.py::test_exact_transition_against_independent_ode \
-  tests/test_synaptic_veto.py::test_finite_pool_against_independent_master_equation \
-  tests/test_synaptic_veto.py::test_shared_uniform_correlation_and_exact_majority
+  tests/test_hq_field_couplings.py::test_well_no_field_and_detailed_balance_limit \
+  tests/test_hq_field_couplings.py::test_well_curvature_matches_independent_finite_difference \
+  tests/test_hq_field_couplings.py::test_batched_lindblad_matches_independent_kron
 ```
 
-Running `python -m pytest tests` explicitly selects all bundled tests, including tests that require the omitted input/result files.
+Other field-coupling and population tests require the omitted frozen operator archive. `python -m pytest tests` explicitly selects those as well. Passing the data-free tests does not reproduce the paper or validate the assumed biological parameters.
 
-The source modules also support calculations with user-specified parameters, without paper data. For example, this computes a hypothetical three-state Hk pulse and prints its peak; its inputs are scenario choices, not measured neural parameters:
+The base dependency versions describe the source-export validation environment. Original neural trial generation uses **NumPy 2.5.0**, enforced by its drivers; do not rerun it with another NumPy version and claim identical random streams. Bounded reproduction instead reads the saved discordance counts and verifies the intervals without rerunning neural trials. Electronic response additionally requires **PySCF 2.13.0** and **pyscf-properties 0.1.0**, together with the separate checkpoints, basis and embedding inputs. These are optional dependencies, not part of the data-free test environment.
+
+## Current calculation map
+
+| Calculation | Implementation | Drivers |
+|---|---|---|
+| Common rigid-body rotation and reaction cycle | `impl/hq_rotation.py` | `investigations/2026-10-09-hq-rotation/` |
+| Protected waits, rapid renewal and added storage | `impl/hq_rotation_cases.py` | `investigations/2026-10-09-rotation-cases/` |
+| Reversible capture/release and fast bound wobble | `impl/hq_binding.py` | `investigations/2026-10-09-binding-motion/` |
+| Electric orientational bias and axial limits | `impl/hq_electric.py` | `investigations/2026-10-09-membrane-field/` |
+| Electronic EFG/HFC susceptibility and well deformation | `impl/hq_field_couplings.py`, `impl/dark_electronic_response.py` | `investigations/2026-10-09-field-couplings/` |
+| Conditional stochastic neural readout | `impl/synaptic_veto.py`, `impl/sparse_synaptic.py`, `impl/stochastic_branch_spike.py` | `neural.py` in the binding-motion and rotation-cases directories |
+| Current article figure/table reproduction | `paper/journal-of-biological-physics/motion-revision/reproduce.py` | Same file, with the separate numerical supplement |
+
+The original drivers retain their workspace-relative paths. Shell wrappers describe the original orchestration and may default to the original local Python path or runtime directory; inspect their interpreter settings before use. Drivers that create reports or validate original provenance may also require excluded reports/manifests. No data are automatically downloaded or fabricated.
+
+A standalone conditional well can be evaluated without paper inputs:
 
 ```bash
 python - <<'PYTHON'
-from impl.literature_bridge_recalculation import solve_pulse, peak
-solution = solve_pulse(a0=10., off=1., binding=100., tau=.05)
-time_s, occupancy = peak(solution)
-print({'peak_time_s': time_s, 'peak_oxidized_fraction': occupancy})
+from impl.hq_field_couplings import well
+w = well([0., 0., 1.], 5., 1e-11, 10.910941626120245)
+print({'rms_angle_deg': w['rms_deg'], 'correlation_times_s': w['taus'].tolist()})
 PYTHON
 ```
 
-## Model and driver map
+This computes the specified mathematical restraint; its parameters are not fitted native binding quantities.
 
-| Component | Numerical source | Original driver |
-|---|---|---|
-| M1: spin history and population storage | `impl/population_memory.py`, `impl/dark_*` | `investigations/2026-09-16-population-memory/run.py` |
-| M2: chemical product routing | `impl/chemical_carrier_mapping.py` | `investigations/2026-09-17-chemical-carrier-mapping/run.py` |
-| M3: three-state Hk storage | `impl/literature_bridge_recalculation.py` | `investigations/2026-09-18-literature-bridge-recalculation/run.py` |
-| M4: conditional synaptic circuit | `impl/synaptic_veto.py`, `impl/sparse_synaptic.py`, `impl/stochastic_branch_spike.py` | `investigations/2026-09-17-synaptic-veto/run.py` |
-| M5: published current-data reanalysis | `impl/hk_redox_memory.py` | `investigations/2026-09-17-hk-redox-update/run.py` |
-| Supplemental bounds and tables | `paper/2026-09-18/revision_analysis.py` | same file |
-| Article figures and frozen-data checks | `paper/physical-biology/supplementary-data/reproduce.py` | same file |
+## Inputs and reproduction limits
 
-## External inputs and reproduction limits
+**This source-only repository cannot reproduce every reported number by itself.** The small tests above run without paper data; original numerical runs require separately supplied inputs.
 
-**This source-only repository cannot reproduce all published numerical values by itself.** The original drivers are retained for inspection and reuse. They expect the original workspace-relative paths, and some enforce hash checks on archived inputs, audit manifests and earlier reports. Those files are intentionally absent; restoring only a CSV is not sufficient for every driver. Low-level functions can be used with independently supplied inputs. There is no fabricated replacement data or automatic download step.
-
-| Calculation | Inputs that must be supplied separately |
+| Calculation | Required external inputs |
 |---|---|
-| M1 operator construction | `data/dark-basis-resolution/*/result.json`, embedded/electronic tensors, `data/dark-md-coefficients/` trajectories and metadata, topology and electronic input specifications |
-| M1 frozen-operator tests | `data/population-memory/latest_case.npz`, `modes_and_states.npz`, associated baseline and verification tables |
-| M2/M3/M4 original scans | `data/dark-basis-resolution/conditional_products_spikes.csv`; fitted/scenario records and inherited preserved-input/audit manifests referenced by the drivers |
-| M5 reanalysis | Original Rorsman et al. source workbook `41586_2025_8734_MOESM4_ESM.xlsx` under `evidence/2026-09-17-native-noise-literature/`, plus archived files required by the driver's provenance checks |
-| Supplemental bounds/tables | Corresponding `data/` outputs and figures referenced by `revision_analysis.py` |
-| Article figure reproduction | `data/`, `tables/` and `source-hashes.json` from the separate supplementary-data bundle, placed beside `reproduce.py` |
+| Rotation, binding and field spin cycles | `data/population-memory/latest_case.npz` containing frozen H/R/E Hamiltonians and local bath operators |
+| Initial operator construction | State-specific electronic results, `data/dark-md-coefficients/` trajectory/metadata, atom/basis and embedding specifications; see `investigations/2026-09-16-dark-basis-resolution/propagate.py` |
+| Matched H/R electronic response | `data/dark-embedded-tensors/` anionic HQ and oxidised radius-12 Å checkpoints, geometries and MM environments |
+| Matched E electronic response | `data/dark-basis-resolution/upcj2N__full/` neutral-SQ checkpoint and full minimum-image environment, including the nitrogen basis |
+| Conditional neural reproduction | Appropriate molecular result JSON files plus the archived NumPy 2.5.0 environment; raw event verification additionally needs saved trial arrays |
+| Current figures, tables and intervals | Extracted Online Resource 2, with its `data/`, `audit/input-manifest.json` and `tables/` beside `reproduce.py` |
 
-The M5 workbook is identified by the primary article DOI [10.1038/s41586-025-08734-4](https://doi.org/10.1038/s41586-025-08734-4). It is not redistributed here. Its reader is included as source code.
+The separate compact Online Resource 2 supports arithmetic checks and figure/table regeneration from frozen results. It does not contain all upstream MD trajectories, electronic checkpoints or neural trial arrays and is not an end-to-end first-principles reproduction bundle. It is intentionally absent from this public repository.
 
-Electronic-structure functions additionally require **PySCF and its `pyscf.prop` extensions**. The pcJ-2 nitrogen basis file, molecular coordinates/checkpoints and trajectory inputs are also external. These optional calculations are not covered by the data-free checks or base dependency file. Upstream molecular-dynamics generation is outside this focused export.
+The current figure script generates PDF/SVG figures, PNG audit previews, LaTeX table fragments and an arithmetic/interval check report. These are outputs, remain ignored, and should not be committed. Numerical tables display five digits after the decimal point; stored inputs and calculations retain full precision. Display precision is not a statement of physical accuracy.
 
-After restoring the required inputs at their expected paths, run drivers from the repository root, for example:
+## Earlier source retained for provenance
 
-```bash
-mkdir -p data
-python investigations/2026-09-17-hk-redox-update/run.py
-python investigations/2026-09-17-hk-redox-update/verify_and_plot.py
-```
+Earlier independent modules include `impl/population_memory.py`, `impl/chemical_carrier_mapping.py`, `impl/literature_bridge_recalculation.py` and `impl/hk_redox_memory.py`, with their September investigation drivers. They are not newly calibrated serial stages of the current neural example. `impl/reservoir.py` and `impl/spin.py` retain earlier reference calculations. The prior figure script remains under `paper/physical-biology/supplementary-data/reproduce.py`; it is not the current four-figure manuscript entry point.
 
-Some drivers perform large scans and create results under `data/`; the figure reproduction script writes to its adjacent `reproduced/` directory. Review their parameters and input requirements before running them.
-
-Numerical sources are copied from the research workspace without changes to model equations or parameter values. The only source portability adjustment replaces the machine-specific plotting-cache directory in `verify_and_plot.py` with the operating system temporary directory.
+The old current-data reanalysis requires the original Rorsman et al. source workbook `41586_2025_8734_MOESM4_ESM.xlsx` from [the primary article](https://doi.org/10.1038/s41586-025-08734-4), plus provenance inputs referenced by its driver. The reader is included; the workbook is not redistributed.
 
 ## License
 
-Source code (`impl/`, `investigations/`, `tests/`, `evidence/**/*.py`, `paper/**/*.py`) is released under the [MIT License](LICENSE). The manuscript and supplement PDFs (`paper/manuscript.pdf`, `paper/supplement.pdf`) are licensed under [Creative Commons Attribution 4.0 International (CC BY 4.0)](https://creativecommons.org/licenses/by/4.0/). Third-party source data referenced above are not redistributed and remain under their original terms.
+Source code (`impl/`, `investigations/`, `tests/`, `evidence/**/*.py`, `paper/**/*.py`) is released under the [MIT License](LICENSE). The manuscript and supplement PDFs (`paper/manuscript.pdf`, `paper/supplement.pdf`) are licensed under [Creative Commons Attribution 4.0 International (CC BY 4.0)](https://creativecommons.org/licenses/by/4.0/). Third-party data are not redistributed and remain under their original terms.

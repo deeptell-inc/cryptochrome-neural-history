@@ -24,8 +24,8 @@ matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 
 plt.rcParams.update({'font.family': 'sans-serif', 'font.sans-serif': ['Arial', 'Helvetica', 'DejaVu Sans'],
-                     'font.size': 10, 'axes.spines.top': False, 'axes.spines.right': False,
-                     'pdf.fonttype': 42, 'ps.fonttype': 42, 'svg.fonttype': 'none'})
+                     'font.size': 14, 'axes.spines.top': False, 'axes.spines.right': False,
+                     'pdf.fonttype': 42, 'ps.fonttype': 42, 'svg.fonttype': 'none', 'legend.framealpha': 1})
 BLUE, ORANGE, GREEN = '#0072B2', '#D55E00', '#009E73'
 
 
@@ -34,7 +34,25 @@ def csv(path):
 
 
 def save(fig, name):
-    for ext in ['pdf', 'svg', 'png']:
+    from matplotlib.ticker import FuncFormatter, MaxNLocator, FixedLocator
+    def decimal_tick(value, _position):
+        if value != 0 and abs(value) < 1e-5:
+            mantissa, exponent = f'{value:.5e}'.split('e')
+            return rf'${mantissa}\times10^{{{int(exponent)}}}$'
+        return f'{value:.5f}'
+    fig.canvas.draw()  # Resolve constrained layout before freezing tick display.
+    for ax in fig.axes:
+        for axis in (ax.xaxis, ax.yaxis):
+            if axis.get_scale() != 'linear':
+                continue
+            ticks = axis.get_majorticklocs()
+            if any(abs(t - round(t)) > 1e-10 for t in ticks):
+                if not isinstance(axis.get_major_locator(), FixedLocator):
+                    axis.set_major_locator(MaxNLocator(nbins=4))
+                axis.set_major_formatter(FuncFormatter(decimal_tick))
+            elif not isinstance(axis.get_major_locator(), FixedLocator):
+                axis.set_major_locator(FixedLocator(ticks))
+    for ext in ['pdf', 'eps', 'svg', 'png']:
         fig.savefig(OUT / (name + '.' + ext), bbox_inches='tight', dpi=180)
     plt.close(fig)
 
@@ -77,6 +95,28 @@ def main():
     base = csv('data/population-memory/baseline_comparison.csv').set_index('model')
     for key, value in yields.items():
         assert abs(value - base.loc[key, 'yield_P']) < 3e-10
+    # A second representation of the boundary-projected model, not an
+    # independent biological model. Do not clip or renormalise frozen maps.
+    C = z['C']
+    K = np.einsum('ji,jk,kl->il', C.conj(), M, C)
+    ell = np.einsum('i,ij->j', read, C)
+    p = np.einsum('ji,j->i', C.conj(), x0)
+    for _ in range(20):
+        p = np.einsum('ij,j->i', K, p)
+    markov_yield = np.einsum('i,i->', ell, p)
+    markov_checks = {
+        'minimum_transition_real': float(K.real.min()),
+        'maximum_transition_imaginary': float(np.abs(K.imag).max()),
+        'maximum_column_sum_error': float(np.abs(K.sum(axis=0)-1).max()),
+        'yield_imaginary': float(abs(markov_yield.imag)),
+        'yield_population_error': float(abs(markov_yield.real-yields['population_HQ'])),
+        'yield': float(markov_yield.real),
+    }
+    assert markov_checks['minimum_transition_real'] >= -1e-8
+    assert markov_checks['maximum_transition_imaginary'] < 1e-8
+    assert markov_checks['maximum_column_sum_error'] < 1e-8
+    assert markov_checks['yield_imaginary'] < 1e-9
+    assert markov_checks['yield_population_error'] < 3e-10
     src = csv('data/dark-basis-resolution/conditional_products_spikes.csv')
     src = src[(src.condition == 'upcj2N__full') & (src.gamma_oxygen_s == 0)].set_index('model')
     q0, q1 = float(src.loc['full', 'yield_reference']), float(src.loc['full', 'yield_P'])
@@ -85,20 +125,23 @@ def main():
     rates = m.decay_rate_s.to_numpy()
     half = brentq(lambda t: np.dot(w, np.exp(-rates*t)) - w.sum()/2, 0, 100)
     assert abs(w.sum()-dq) < 3e-10 and abs(half-1.63473966727) < 1e-8
-    fig, ax = plt.subplots(1, 2, figsize=(8.4, 3.5), layout='constrained')
+    fig, ax = plt.subplots(1, 2, figsize=(8.4, 4.5), layout='constrained')
     colors = [GREEN, BLUE, ORANGE, GREEN, BLUE, ORANGE, ORANGE, ORANGE]
-    ax[0].bar(m['mode'], 100*w/w.sum(), color=colors)
-    ax[0].set(xlabel='HQ population mode', ylabel='Readout contribution (%)', title='(a) Mode-selective readout', xticks=range(1,9))
+    bars = ax[0].bar(m['mode'], 100*w/w.sum(), color=colors, edgecolor='black', linewidth=.5)
+    for bar, color in zip(bars, colors):
+        bar.set_hatch({BLUE: '//', GREEN: '..', ORANGE: 'xx'}[color])
+    ax[0].set(xlabel='HQ population mode', ylabel='Readout contribution (%)', title='(a)', xticks=range(1,9))
     from matplotlib.patches import Patch
-    ax[0].legend(handles=[Patch(color=BLUE,label='N5'),Patch(color=GREEN,label='N10'),Patch(color=ORANGE,label='Correlation')], fontsize=8)
+    fig.legend(loc='outside upper center', ncol=3, frameon=False, handles=[Patch(facecolor=BLUE,edgecolor='black',hatch='//',label='N5'),Patch(facecolor=GREEN,edgecolor='black',hatch='..',label='N10'),Patch(facecolor=ORANGE,edgecolor='black',hatch='xx',label='Correlation')], fontsize=14)
     t = np.logspace(-3, 2, 220)
     hold = csv('data/population-memory/HQ_pulse_chase.csv')
     h = hold[hold.time_s >= 1e-3]
     ax[1].semilogx(h.time_s, h.full_yield_memory/dq, color=BLUE, label='Full')
     ax[1].semilogx(t, np.einsum('ij,j->i', np.exp(-t[:,None]*rates), w)/w.sum(), '--', color=ORANGE, label='Population modes')
-    ax[1].axvline(half, ls=':', color='gray', label='Half-decay: 1.635 s')
-    ax[1].set(xlabel='Isolated HQ hold (s)', ylabel='Normalised yield contrast', title='(b) Conditional storage')
-    ax[1].legend(fontsize=8)
+    ax[1].axvline(half, ls=':', color='gray', label=f'Half-decay: {half:.5f} s')
+    ax[1].set(xlabel='Isolated HQ hold (s)', ylabel='Normalised yield contrast', title='(b)')
+    handles, labels_readout = ax[1].get_legend_handles_labels()
+    fig.legend(handles, labels_readout, fontsize=14, loc='outside lower center', ncol=3, frameon=False, columnspacing=.7, handlelength=1.5)
     save(fig, 'fig1')
 
     peaks = csv('data/literature-bridge-recalculation/peak_comparison.csv')
@@ -108,9 +151,9 @@ def main():
     fig, ax = plt.subplots(1, 2, figsize=(8.4, 3.5), layout='constrained')
     t = np.linspace(0, 5, 300)
     ax[0].plot(t, 100*dq/2*np.exp(-t), color=GREEN, lw=2)
-    ax[0].set(xlabel='Time after reaction (s)', ylabel='100 × peroxide contrast / HQ event', title='(a) Equal chemical endpoints')
+    ax[0].set(xlabel='Time after reaction (s)', ylabel='100 × peroxide contrast / HQ event', title='(a)')
     ax[1].bar(np.arange(len(peaks)), 100*peaks[peak_col], color=ORANGE)
-    ax[1].set(xticks=np.arange(len(peaks)), xticklabels=[f'{1000*t:g}' for t in peaks.tau_s], xlabel='Assumed input lifetime (ms)', ylabel='Peak oxidised fraction (%)', title='(b) Supplied Hk input')
+    ax[1].set(xticks=np.arange(len(peaks)), xticklabels=[f'{1000*t:g}' for t in peaks.tau_s], xlabel='Assumed input lifetime (ms)', ylabel='Peak oxidised fraction (%)', title='(b)')
     save(fig,'fig2')
     chemical = solve_ivp(lambda t,y: [-5*y[0]-dq/2*np.exp(-t)], [0,2], [dq/2], t_eval=[0,.2,2], rtol=1e-11, atol=1e-15)
     analytic = dq/2*(np.exp(-5*chemical.t)-(np.exp(-chemical.t)-np.exp(-5*chemical.t))/4)
@@ -121,7 +164,7 @@ def main():
     for i, (tau,color) in enumerate([(.012,BLUE),(.2,ORANGE)]):
         part = c[c.tau == tau].set_index('route').loc[['go','trigger','stop']]
         y = part.delta_stop_pp.to_numpy()
-        ax.errorbar(np.arange(3)+(i-.5)*.16, y, yerr=np.stack([y-part.stop_MC95_low_pp,part.stop_MC95_high_pp-y]), fmt='o', color=color, capsize=4,label=f'{1000*tau:g} ms')
+        ax.errorbar(np.arange(3)+(i-.5)*.16, y, yerr=np.stack([y-part.stop_MC95_low_pp,part.stop_MC95_high_pp-y]), fmt=['o','s'][i], color=color, capsize=4,label=f'{1000*tau:g} ms')
     ax.axhline(0,color='gray',lw=.7)
     ax.set(xticks=range(3),xticklabels=['Go','Cue trigger','Post-trigger stop'],ylabel='Stopping contrast (percentage points)',xlabel='Modulated process')
     ax.legend(title='Chemical lifetime')
@@ -140,16 +183,17 @@ def main():
         trial_checks.append({'condition':row.condition_id,'n':len(values),'delta_stop_pp':val})
 
     selected=csv('tables/population_selected.csv'); gain=csv('tables/circuit_gain.csv')
-    fig,ax=plt.subplots(1,2,figsize=(8.4,3.7),layout='constrained')
-    labels={'baseline':'Reference','b':'HQ wait\n0.1/s','cp':'P recovery\n0.1/s','ce':'E oxidation\n10000/s','closed_shell_noise_scale':'Noise\n×100'}
+    fig,ax=plt.subplots(1,2,figsize=(8.4,5.2),layout='constrained')
+    labels={'baseline':'Reference','b':'HQ wait: 0.10000/s','cp':'P recovery: 0.10000/s','ce':'E oxidation: 10000/s','closed_shell_noise_scale':'Noise ×100'}
     ax[0].bar(range(len(selected)),100*selected.delta_yield,color=BLUE)
-    ax[0].set(xticks=range(len(selected)),xticklabels=[labels[a] for a in selected.axis],ylabel='Yield contrast (percentage points)',title='(a) Molecular sensitivity')
-    ax[0].tick_params(axis='x',labelsize=8);ax[0].axhline(0,color='gray',lw=.7)
+    ax[0].set(xticks=range(len(selected)),xticklabels=[labels[a] for a in selected.axis],ylabel='Yield contrast (percentage points)',title='(a)')
+    plt.setp(ax[0].get_xticklabels(), rotation=55, ha='right')
+    ax[0].tick_params(axis='x',labelsize=14);ax[0].axhline(0,color='gray',lw=.7)
     y=gain.delta_stop_pp.to_numpy()
     ax[1].errorbar(gain.gain,y,yerr=np.stack([y-gain.stop_MC95_low_pp,gain.stop_MC95_high_pp-y]),fmt='o-',color=ORANGE,capsize=3,label='3072 pairs')
     conf=c[(c.route=='stop')&(c.tau==.2)].iloc[0]
     ax[1].errorbar([1024],[conf.delta_stop_pp],yerr=[[conf.delta_stop_pp-conf.stop_MC95_low_pp],[conf.stop_MC95_high_pp-conf.delta_stop_pp]],fmt='s',color=BLUE,capsize=3,label='24576 pairs')
-    ax[1].set(xlabel='Assumed gain',ylabel='Stopping contrast (percentage points)',title='(b) Gain sensitivity');ax[1].legend(fontsize=8)
+    ax[1].set(xlabel='Assumed gain',ylabel='Stopping contrast (percentage points)',title='(b)');ax[1].legend(fontsize=14)
     save(fig,'fig4')
 
     hk=csv('tables/hk_heldout_uncertainty.csv')
@@ -168,11 +212,11 @@ def main():
         assert abs(diffs[row['split']]-row.mean_dynamic_minus_static_MSE)<1e-10
     fig,ax=plt.subplots(1,2,figsize=(8.4,3.6),layout='constrained',gridspec_kw={'width_ratios':[1,1.15]})
     for i,model in enumerate(['dynamic','static']):
-        ax[0].bar(np.arange(3)+(i-.5)*.34,[rmse[s,model] for s in ['fit','cell_validation','condition_validation']],width=.34,label=model.capitalize(),color=[BLUE,ORANGE][i])
-    ax[0].set(xticks=range(3),xticklabels=['Training','Held-out','40 min'],ylabel='Standardised RMSE',title='(a) Predictive error');ax[0].legend(fontsize=8)
+        ax[0].bar(np.arange(3)+(i-.5)*.34,[rmse[s,model] for s in ['fit','cell_validation','condition_validation']],width=.34,label=model.capitalize(),color=[BLUE,ORANGE][i],hatch=['//','xx'][i],edgecolor='black',linewidth=.5)
+    ax[0].set(xticks=range(3),xticklabels=['Training','Held-out','40 min'],ylabel='Standardised RMSE',title='(a)');ax[0].legend(fontsize=14)
     y=hk.mean_dynamic_minus_static_MSE.to_numpy()
     ax[1].errorbar([0,1],y,yerr=np.stack([y-hk.interval_low,hk.interval_high-y]),fmt='o',color=BLUE,capsize=4)
-    ax[1].axhline(0,color='gray',ls='--');ax[1].set(xticks=[0,1],xticklabels=['Held-out\n16 cells','40 min\n7 cells'],ylabel='Dynamic − static mean squared error',title='(b) Cell-bootstrap uncertainty',xlim=(-.5,1.5))
+    ax[1].axhline(0,color='gray',ls='--');ax[1].set(xticks=[0,1],xticklabels=['Held-out\n16 cells','40 min\n7 cells'],ylabel='Dynamic − static mean squared error',title='(b)',xlim=(-.5,1.5))
     save(fig,'fig5')
 
     bound_rows=[]
@@ -182,7 +226,8 @@ def main():
         assert abs(tv-tv2)<1e-11
         bound_rows.append({'N':N,'TV_pp':100*tv,'paired_bound_pp':-100*np.expm1(N*np.log1p(-dq))})
     report={'input_hashes_checked':len(hashes),'scope':'Frozen-operator reconstruction, saved-trial reclassification and replotting; not an upstream simulation rerun',
-            'yields':yields,'delta_q':dq,'half_decay_s':half,'correlation_share_percent':float(100*w[[2,5,6,7]].sum()/w.sum()),
+            'yields':yields,'population_stochastic_representation':markov_checks,
+            'delta_q':dq,'half_decay_s':half,'correlation_share_percent':float(100*w[[2,5,6,7]].sum()/w.sum()),
             'chemical_residuals':analytic.tolist(),'trial_checks':trial_checks,
             'hk_rmse':{f'{s}/{m}':v for (s,m),v in rmse.items()},'hk_mse_differences':diffs,'bounds':bound_rows,'status':'passed'}
     (OUT/'checks.json').write_text(json.dumps(report,indent=2)+'\n')

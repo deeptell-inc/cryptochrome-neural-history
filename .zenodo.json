@@ -1,7 +1,7 @@
 {
-  "title": "Cryptochrome spin-state history and neural responses: computational source companion",
+  "title": "Rotational constraints on nuclear population memory in a cryptochrome reaction model: computational source companion",
   "upload_type": "software",
-  "description": "<p>Computational source companion to the manuscript <em>Conditions for transmitting cryptochrome spin-state history to neural responses</em> (Physical Biology submission draft). Contains the compiled manuscript and supplement PDFs, the calculation modules, simulation/analysis drivers and data-free numerical tests.</p><p>The five modules (spin history and population storage, chemical product routing, three-state Hk storage, conditional synaptic circuit, published current-data reanalysis) are separate conditional tests, not successive stages of a calibrated biological pathway. Precomputed results and third-party source data are not included; see README for the inputs required to reproduce each calculation.</p>",
+  "description": "<p>Computational source and compiled article/supplement for the motion-dependent Journal of Biological Physics draft (9 October 2026, jbp-motion-2.0.0). The model compares free rotation, protected waits, reversible binding, bound wobble, electric orientation, electronic EFG/HFC response and deformation of an assumed binding well. Neural readout is conditional on prescribed gain and timing.</p><p>Only source code, two compiled PDFs and minimal project metadata are included. Simulation results, frozen operators, trajectories, checkpoints, raw trial records and the separate numerical Online Resource 2 archive are excluded. Full numerical reproduction requires external inputs described in README. No native neural mechanism or biological effect size is established.</p>",
   "creators": [
     {
       "name": "Wakaura, Hikaru",
@@ -12,6 +12,12 @@
   "keywords": [
     "cryptochrome",
     "radical pair",
+    "nuclear spin populations",
+    "rotational diffusion",
+    "quadrupolar relaxation",
+    "reversible binding",
+    "electric field",
+    "conditional neural readout",
     "nuclear spin polarization",
     "Hyperkinetic",
     "Kv beta subunit",
